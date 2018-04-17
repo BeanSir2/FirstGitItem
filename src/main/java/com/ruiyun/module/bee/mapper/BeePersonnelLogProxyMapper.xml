@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ruiyun.module.bee.proxy.BeePersonnelLogProxy">
+  <resultMap id="BaseResultMap" type="com.ruiyun.module.bee.entity.BeePersonnelLogEntity">
+    <id column="bee_personnel_log_id" property="beePersonnelLogId" jdbcType="INTEGER" />
+    <result column="bee_personnel_id" property="beePersonnelId" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="log_content" property="logContent" jdbcType="VARCHAR" />
+  </resultMap>
+  
+
+	<insert id="insertSelective"  parameterType="com.ruiyun.module.bee.entity.BeePersonnelLogEntity">
+		insert into bee_personnel_log
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="beePersonnelLogId != null">
+				bee_personnel_log_id,
+			</if>
+			<if test="beePersonnelId != null">
+				bee_personnel_id,
+			</if>
+			<if test="createTime != null">
+				create_time,
+			</if>
+			<if test="logContent != null">
+				log_content,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="beePersonnelLogId != null">
+				#{beePersonnelLogId,jdbcType=INTEGER},
+			</if>
+			<if test="beePersonnelId != null">
+				#{beePersonnelId,jdbcType=INTEGER},
+			</if>
+			<if test="createTime != null">
+				#{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="logContent != null">
+				#{logContent,jdbcType=VARCHAR},
+			</if>
+		</trim>
+	</insert>
+	
+	<select id="selectByBeePersonnelId" resultMap="BaseResultMap">
+		select *
+		from bee_personnel_log
+		<where>
+			bee_personnel_id = #{beePersonnelId}
+		</where>
+		ORDER BY
+			create_time DESC
+	</select>
+	
+	<select id="selectByBeeTeamId" resultMap="BaseResultMap">
+		SELECT
+			*
+		FROM
+			bee_personnel_log
+		WHERE
+			bee_personnel_id IN (
+				SELECT
+					bee_personnel_id
+				FROM
+					bee_personnel
+				WHERE
+					bee_team_id = #{beeTeamId}
+			)
+		ORDER BY
+			create_time DESC
+	
+	</select>
+	
+	
+	
+</mapper>

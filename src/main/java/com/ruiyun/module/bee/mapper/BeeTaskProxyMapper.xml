@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ruiyun.module.bee.proxy.BeeTaskProxy">
+  <resultMap id="BaseResultMap" type="com.ruiyun.module.bee.entity.BeeTaskEntity">
+    <id column="bee_task_id" property="beeTaskId" jdbcType="INTEGER" />
+    <result column="bee_team_id" property="beeTeamId" jdbcType="INTEGER" />
+    <result column="task_name" property="taskName" jdbcType="VARCHAR" />
+    <result column="task_personnel_count" property="taskPersonnelCount" jdbcType="INTEGER" />
+    <result column="start_date" property="startDate" jdbcType="VARCHAR" />
+    <result column="end_date" property="endDate" jdbcType="VARCHAR" />
+    <result column="longitude" property="longitude" jdbcType="DECIMAL" />
+    <result column="latitude" property="latitude" jdbcType="DECIMAL" />
+    <result column="address" property="address" jdbcType="VARCHAR" />
+    <result column="task_date" property="taskDate" jdbcType="VARCHAR" />
+    <result column="am_sign_in_time" property="amSignInTime" jdbcType="TIMESTAMP" />
+    <result column="am_sign_out_time" property="amSignOutTime" jdbcType="TIMESTAMP" />
+    <result column="pm_sign_in_time" property="pmSignInTime" jdbcType="TIMESTAMP" />
+    <result column="pm_sign_out_time" property="pmSignOutTime" jdbcType="TIMESTAMP" />
+    <result column="sign_float_minute" property="signFloatMinute" jdbcType="INTEGER" />
+    <result column="sign_radius" property="signRadius" jdbcType="INTEGER" />
+    <result column="task_status" property="taskStatus" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="merchant_id"  property="merchantId" jdbcType="INTEGER" />
+  </resultMap>
+ 
+ <!--拓客数据  -->
+  <select id="getTokerData" resultMap="BaseResultMap" parameterType="com.ruiyun.module.bee.entity.BeeCommonEntity">
+	SELECT
+		distinct bt.*
+	FROM
+		order_custom_record ocr
+	LEFT JOIN bee_task bt ON ocr.bee_task_id = bt.bee_task_id
+	LEFT JOIN bee_personnel bp ON bt.bee_team_id = bp.bee_team_id,
+	 system_operator so,
+ 	 system_operator_company soc,
+ 	 system_operator_building_project sobp
+	<where>
+			so.operator_id = soc.operator_id
+		AND so.operator_id = #{operatorId}
+		AND bp.company_id = soc.company_id
+		AND ocr.building_project_id = sobp.building_project_id
+		AND ocr.record_channel = 3
+	<if test="entity.beePersonnelId != null and entity.beePersonnelId != ''">
+		AND bp.personnel_permission = '小蜜蜂'
+		AND bp.bee_personnel_id = #{entity.beePersonnelId}
+		AND ocr.broker_id = #{entity.beePersonnelId}
+	</if>
+	<if test="entity.startDate != null and entity.startDate != ''">
+		AND	DATE_FORMAT(bt.start_date,"%Y-%m-%d") <![CDATA[ >= ]]> #{entity.startDate}
+	</if>
+	<if test="entity.endDate != null and entity.endDate != ''">
+		AND	DATE_FORMAT(bt.end_date,"%Y-%m-%d") <![CDATA[ <= ]]> #{entity.endDate}
+	</if>
+	<if test="entity.beeTaskId != null and entity.beeTaskId != ''">
+		AND ocr.bee_task_id = #{entity.beeTaskId}
+	</if>
+	<if test="entity.beeTeamId != null and entity.beeTeamId != ''">
+		AND bt.bee_team_id = #{entity.beeTeamId}
+	</if>
+	<if test="entity.buildingProjectId != null and entity.buildingProjectId != ''">
+		AND ocr.building_project_id = #{entity.buildingProjectId}
+	</if>
+	<if test="entity.provinceId != null and entity.provinceId != ''">
+		AND ocr.province_id = #{entity.provinceId}
+	</if>
+	<if test="entity.cityId != null and entity.cityId != ''">
+		AND ocr.city_id = #{entity.cityId}
+	</if>
+	</where>
+ </select>
+ 
+ <!--报备数据  -->
+ <select id="getReportData" resultType="map" parameterType="com.ruiyun.module.bee.entity.BeeCommonEntity">
+	SELECT
+		ocr.latitude,ocr.longitude,ocr.report_location address
+	FROM
+		order_custom_record ocr
+	LEFT JOIN bee_task bt ON ocr.bee_task_id = bt.bee_task_id
+	LEFT JOIN bee_personnel bp ON bt.bee_team_id = bp.bee_team_id,
+	 system_operator so,
+ 	 system_operator_company soc,
+ 	 system_operator_building_project sobp
+	<where>
+			so.operator_id = soc.operator_id
+		AND so.operator_id = #{operatorId}
+		AND bp.company_id = soc.company_id
+		AND ocr.building_project_id = sobp.building_project_id
+		AND ocr.record_channel = 3
+	<if test="entity.beePersonnelId != null and entity.beePersonnelId != ''">
+		AND bp.personnel_permission = '小蜜蜂'
+		AND bp.bee_personnel_id = #{entity.beePersonnelId}
+		AND ocr.broker_id = #{entity.beePersonnelId}
+	</if>
+	<if test="entity.startDate != null and entity.startDate != ''">
+		AND	DATE_FORMAT(bt.start_date,"%Y-%m-%d") <![CDATA[ >= ]]> #{entity.startDate}
+	</if>
+	<if test="entity.endDate != null and entity.endDate != ''">
+		AND	DATE_FORMAT(bt.end_date,"%Y-%m-%d") <![CDATA[ <= ]]> #{entity.endDate}
+	</if>
+	<if test="entity.beeTaskId != null and entity.beeTaskId != ''">
+		AND ocr.bee_task_id = #{entity.beeTaskId}
+	</if>
+	<if test="entity.beeTeamId != null and entity.beeTeamId != ''">
+		AND bt.bee_team_id = #{entity.beeTeamId}
+	</if>
+	<if test="entity.buildingProjectId != null and entity.buildingProjectId != ''">
+		AND ocr.building_project_id = #{entity.buildingProjectId}
+	</if>
+	<if test="entity.provinceId != null and entity.provinceId != ''">
+		AND ocr.province_id = #{entity.provinceId}
+	</if>
+	<if test="entity.cityId != null and entity.cityId != ''">
+		AND ocr.city_id = #{entity.cityId}
+	</if>
+	</where>
+	GROUP BY ocr.order_custom_record_id
+ </select>
+ 
+ <!--到访数据  -->
+   <select id="getVisitData" resultType="map" parameterType="com.ruiyun.module.bee.entity.BeeCommonEntity">
+	SELECT
+		ocr.latitude,ocr.longitude,ocr.report_location address
+	FROM
+		order_custom_record ocr
+	LEFT JOIN bee_task bt ON ocr.bee_task_id = bt.bee_task_id
+	LEFT JOIN bee_personnel bp ON bt.bee_team_id = bp.bee_team_id,
+  	 system_operator so,
+ 	 system_operator_company soc , 
+ 	 system_operator_building_project sobp
+	<where>
+			so.operator_id = soc.operator_id
+		AND so.operator_id = #{operatorId}
+		AND bp.company_id = soc.company_id
+		AND ocr.building_project_id = sobp.building_project_id
+  		AND ocr.record_status in(6,7)
+  		AND ocr.record_channel = 3
+	 <if test="entity.startDate != null and entity.startDate != ''">
+		AND	DATE_FORMAT(bt.start_date,"%Y-%m-%d") <![CDATA[ >= ]]> #{entity.startDate}
+	 </if>
+	 <if test="entity.endDate != null and entity.endDate != ''">
+		AND	DATE_FORMAT(bt.end_date,"%Y-%m-%d") <![CDATA[ <= ]]> #{entity.endDate}
+	 </if>
+	 <if test="entity.beePersonnelId != null and entity.beePersonnelId != ''">
+  		AND	bp.personnel_permission = '小蜜蜂'
+		AND bp.bee_personnel_id = #{entity.beePersonnelId}
+		AND ocr.broker_id = #{entity.beePersonnelId}
+  	</if>
+  	<if test="entity.beeTaskId != null and entity.beeTaskId != ''">
+		AND ocr.bee_task_id = #{entity.beeTaskId}
+	</if>
+	<if test="entity.beeTeamId != null and entity.beeTeamId != ''">
+		AND bt.bee_team_id = #{entity.beeTeamId}
+	</if>
+	<if test="entity.buildingProjectId != null and entity.buildingProjectId != ''">
+		AND ocr.building_project_id = #{entity.buildingProjectId}
+	</if>
+	<if test="entity.provinceId != null and entity.provinceId != ''">
+		AND ocr.province_id = #{entity.provinceId}
+	</if>
+	<if test="entity.cityId != null and entity.cityId != ''">
+		AND ocr.city_id = #{entity.cityId}
+	</if>
+  </where>
+  GROUP BY ocr.order_custom_record_id
+ </select>
+ 
+ <!--认购数据 -->
+  <select id="getSubscripteData" resultType="map" parameterType="com.ruiyun.module.bee.entity.BeeCommonEntity">
+	SELECT
+		ocr.latitude,ocr.longitude,ocr.report_location address
+	FROM
+		order_info oi
+	LEFT JOIN order_custom_record ocr ON oi.order_custom_record_id = ocr.order_custom_record_id
+	LEFT JOIN bee_task bt ON ocr.bee_task_id = bt.bee_task_id
+	LEFT JOIN bee_personnel bp ON bt.bee_team_id = bp.bee_team_id,
+	 system_operator so,
+ 	 system_operator_company soc , 
+ 	 system_operator_building_project sobp
+	<where>
+			so.operator_id = soc.operator_id
+		AND so.operator_id = #{operatorId}
+		AND bp.company_id = soc.company_id
+		AND oi.building_project_id = sobp.building_project_id
+ 		AND oi.order_status IN (3, 4, 5)
+ 		AND oi.channel_type = 3
+ 		AND ocr.record_channel = 3
+ 	 <if test="entity.beePersonnelId != null and entity.beePersonnelId != ''">
+		AND bp.personnel_permission = '小蜜蜂'
+		AND bp.bee_personnel_id = #{entity.beePersonnelId}
+		AND ocr.broker_id = #{entity.beePersonnelId}
+	</if>
+	 <if test="entity.startDate != null and entity.startDate != ''">
+		AND	DATE_FORMAT(bt.start_date,"%Y-%m-%d") <![CDATA[ >= ]]> #{entity.startDate}
+	 </if>
+	 <if test="entity.endDate != null and entity.endDate != ''">
+		AND	DATE_FORMAT(bt.end_date,"%Y-%m-%d") <![CDATA[ <= ]]> #{entity.endDate}
+	 </if>
+	 <if test="entity.beeTaskId != null and entity.beeTaskId != ''">
+		AND ocr.bee_task_id = #{beeTaskId}
+	 </if>
+	 <if test="entity.beeTeamId != null and entity.beeTeamId != ''">
+		AND bt.bee_team_id = #{entity.beeTeamId}
+	 </if>
+	 <if test="entity.buildingProjectId != null and entity.buildingProjectId != ''">
+		AND oi.building_project_id = #{entity.buildingProjectId}
+	 </if>
+	 <if test="entity.provinceId != null and entity.provinceId != ''">
+		AND oi.province_id = #{entity.provinceId}
+	</if>
+	<if test="entity.cityId != null and entity.cityId != ''">
+		AND oi.city_id = #{entity.cityId}
+	</if>
+  </where>
+  GROUP BY ocr.order_custom_record_id
+ </select>
+ 
+ <!-- 成交数 -->
+ <select id="getTurnoverData" resultType="map" parameterType="com.ruiyun.module.bee.entity.BeeCommonEntity">
+	SELECT
+		ocr.latitude,ocr.longitude,ocr.report_location address
+	FROM
+		order_info oi
+	LEFT JOIN order_custom_record ocr ON oi.order_custom_record_id = ocr.order_custom_record_id
+	LEFT JOIN bee_task bt ON ocr.bee_task_id = bt.bee_task_id
+	LEFT JOIN bee_personnel bp ON bt.bee_team_id = bp.bee_team_id,
+	 system_operator so,
+ 	 system_operator_company soc , 
+ 	 system_operator_building_project sobp
+	<where>
+			so.operator_id = soc.operator_id
+		AND so.operator_id = #{operatorId}
+		AND bp.company_id = soc.company_id
+		AND oi.building_project_id = sobp.building_project_id
+  		AND oi.order_status = 5
+  		AND oi.channel_type = 3
+  		AND ocr.record_channel = 3
+  	<if test="entity.beePersonnelId != null and entity.beePersonnelId != ''">
+		AND bp.personnel_permission = '小蜜蜂'
+		AND bp.bee_personnel_id = #{entity.beePersonnelId}
+		AND ocr.broker_id = #{entity.beePersonnelId}
+  	</if>
+	 <if test="entity.startDate != null and entity.startDate != ''">
+		AND	DATE_FORMAT(bt.start_date,"%Y-%m-%d") <![CDATA[ >= ]]> #{entity.startDate}
+	 </if>
+	 <if test="entity.endDate != null and entity.endDate != ''">
+		AND	DATE_FORMAT(bt.end_date,"%Y-%m-%d") <![CDATA[ <= ]]> #{entity.endDate}
+	 </if>
+	 <if test="entity.beeTaskId != null and entity.beeTaskId != ''">
+		AND ocr.bee_task_id = #{beeTaskId}
+	 </if>
+	 <if test="entity.beeTeamId != null and entity.beeTeamId != ''">
+		AND bt.bee_team_id = #{entity.beeTeamId}
+	 </if>
+	 <if test="entity.buildingProjectId != null and entity.buildingProjectId != ''">
+		AND oi.building_project_id = #{entity.buildingProjectId}
+	 </if>
+	 <if test="entity.provinceId != null and entity.provinceId != ''">
+		AND oi.province_id = #{entity.provinceId}
+	</if>
+	<if test="entity.cityId != null and entity.cityId != ''">
+		AND oi.city_id = #{entity.cityId}
+	</if>
+  </where>
+  GROUP BY ocr.order_custom_record_id
+ </select>
+ 
+ 
+ 
+ <select id="getBuildingInfo" resultType="map" parameterType="com.ruiyun.module.bee.entity.BeeCommonEntity">
+ 	SELECT
+	 	bp.address,bp.latitude,bp.longitude,bp.building_project_name buildingProjectName
+	FROM
+		building_project bp,
+		system_operator_building_project  sobp
+	<where>
+			bp.building_project_id = sobp.building_project_id
+		AND sobp.operator_id = #{operatorId}
+	<if test="entity.buildingProjectId != null and entity.buildingProjectId != ''">
+		AND bp.building_project_id = #{entity.buildingProjectId}
+	 </if>
+	 <if test="entity.provinceId != null and entity.provinceId != ''">
+		AND bp.province_id = #{entity.provinceId}
+	</if>
+	<if test="entity.cityId != null and entity.cityId != ''">
+		AND bp.city_id = #{entity.cityId}
+	</if>
+	</where>
+ 	
+ 
+ </select>
+ 
+</mapper>

@@ -1,0 +1,427 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ruiyun.module.bee.proxy.MarketingActivityManagementProxy" >
+  <resultMap id="BaseResultMap" type="com.ruiyun.module.bee.entity.BeeTaskLogAndTeamEntity" >
+    <id column="bee_task_log_id" property="beeTaskLogId" jdbcType="INTEGER" />
+    <result column="bee_task_id" property="beeTaskId" jdbcType="INTEGER" />
+    <result column="bee_team_id" property="beeTeamId" jdbcType="INTEGER" />
+    <result column="task_name" property="taskName" jdbcType="VARCHAR" />
+    <result column="task_personnel_count" property="taskPersonnelCount" jdbcType="INTEGER" />
+    <result column="start_date" property="startDate" jdbcType="DATE" />
+    <result column="end_date" property="endDate" jdbcType="DATE" />
+    <result column="longitude" property="longitude" jdbcType="DECIMAL" />
+    <result column="latitude" property="latitude" jdbcType="DECIMAL" />
+    <result column="address" property="address" jdbcType="VARCHAR" />
+    <result column="task_date" property="taskDate" jdbcType="VARCHAR" />
+    <result column="am_sign_in_time" property="amSignInTime" jdbcType="TIME" />
+    <result column="am_sign_out_time" property="amSignOutTime" jdbcType="TIME" />
+    <result column="pm_sign_in_time" property="pmSignInTime" jdbcType="TIME" />
+    <result column="pm_sign_out_time" property="pmSignOutTime" jdbcType="TIME" />
+    <result column="sign_float_minute" property="signFloatMinute" jdbcType="INTEGER" />
+    <result column="sign_radius" property="signRadius" jdbcType="INTEGER" />
+    <result column="bee_personnel_id" property="beePersonnelId" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="merchant_id" property="merchantId" jdbcType="INTEGER" />
+    <result column="audit_bee_personnel_id" property="auditBeePersonnelId" jdbcType="INTEGER" />
+    <result column="audit_time" property="auditTime" jdbcType="TIMESTAMP" />
+    <result column="audit_status" property="auditStatus" jdbcType="INTEGER" />
+    <result column="audit_reason" property="auditReason" jdbcType="VARCHAR" />
+    <result column="task_status" property="taskStatus" jdbcType="VARCHAR" />
+  
+  	<result column="beePersonnel_id" property="beePersonnelId" jdbcType="INTEGER" />
+  	<result column="company_id" property="companyId" jdbcType="INTEGER" />
+  	<result column="parent_bee_personnel_id" property="parentBeePersonnelId" jdbcType="INTEGER" />
+  	
+  
+  </resultMap>
+  <sql id="Base_Column_List" >
+    bee_task_log_id, bee_task_id, bee_team_id, task_name, task_personnel_count, start_date, 
+    end_date, longitude, latitude, address, task_date, am_sign_in_time, am_sign_out_time, 
+    pm_sign_in_time, pm_sign_out_time, sign_float_minute, sign_radius, bee_personnel_id, 
+    create_time, merchant_id, audit_bee_personnel_id, audit_time, audit_status, audit_reason,
+    beePersonnel_id,company_id,parent_bee_personnel_id
+  </sql>
+  
+  
+  <select id="getGridData" resultMap="BaseResultMap">
+  		SELECT
+		    a.bee_task_id,
+			a.bee_team_id,
+			a.task_name,
+			a.task_personnel_count,
+			a.start_date,
+			a.task_status,
+			a.end_date,
+			a.address,
+			a.sign_radius,
+		 	btl.audit_status,
+			btl.bee_personnel_id,
+		 CONCAT(b.personnel_name,'/',b.personnel_tel) personnelName,
+		 sc.company_name companyName,
+		 b.personnel_permission parentBeePersonnelName	
+		FROM
+			bee_task a
+		LEFT JOIN bee_task_log btl ON a.bee_task_id = btl.bee_task_id
+		LEFT JOIN bee_personnel b ON btl.bee_personnel_id = b.bee_personnel_id
+		LEFT JOIN system_company sc ON  sc.company_id= b.company_id
+		WHERE  
+			1=1
+		GROUP BY a.bee_task_id
+		<if test="companyName != null and companyName !=''">
+		 and btl.address=#{companyName}
+		</if>
+		<if test="startDate != null and startDate != ''">
+		AND	DATE_FORMAT(btl.start_date,"%Y-%m-%d") <![CDATA[ >= ]]> #{startDate}
+		</if>
+		<if test="endDate != null and endDate != ''">
+		AND	DATE_FORMAT(btl.end_date,"%Y-%m-%d") <![CDATA[ <= ]]> #{endDate}
+		</if>
+		<if test="projectInfoName != null and projectInfoName !=''">
+		 and btl.task_status=#{projectInfoName}
+		</if>
+		<if test="taskName != null and taskName !=''">
+		 and btl.task_name=#{taskName}
+		</if>
+		<if test="pageParams != null and pageParams != ''">
+			ORDER BY
+			#{pageParams.sort} #{pageParams.order}
+			LIMIT
+			#{pageParams.startRow}, #{pageParams.endRow}
+		</if>	
+	</select>
+	
+	<select id="getGridDataCount" resultType="java.lang.Long">
+		 SELECT
+			COUNT(1)
+		FROM
+			(
+				SELECT
+					COUNT(1)
+				FROM
+					bee_task a
+				LEFT JOIN bee_task_log btl ON a.bee_task_id = btl.bee_task_id
+				LEFT JOIN bee_personnel b ON btl.bee_personnel_id = b.bee_personnel_id
+				LEFT JOIN system_company sc ON sc.company_id = b.company_id
+				where
+					1=1 
+					GROUP BY a.bee_task_id
+				<if test="companyName != null and companyName !=''">
+				 and btl.address=#{companyName}
+				</if>
+				<if test="startDate != null and startDate != ''">
+				AND	DATE_FORMAT(btl.start_date,"%Y-%m-%d") <![CDATA[ >= ]]> #{startDate}
+				</if>
+				<if test="endDate != null and endDate != ''">
+				AND	DATE_FORMAT(btl.end_date,"%Y-%m-%d") <![CDATA[ <= ]]> #{endDate}
+				</if>
+				<if test="projectInfoName != null and projectInfoName !=''">
+				 and btl.task_status=#{projectInfoName}
+				</if>
+				<if test="taskName != null and taskName !=''">
+				 and btl.task_name=#{taskName}
+				</if>
+					
+			) ss
+	</select>
+	
+  
+  
+  
+  
+	<select id="getLogList" resultType="map">
+		SELECT
+			btpl.*
+		FROM
+			bee_task_personnel_log btpl
+			LEFT JOIN bee_task_log btl ON btpl.bee_task_log_id = btl.bee_task_log_id
+		where 
+			btpl.bee_task_id = #{beeTaskId}
+	</select>
+  
+  
+  
+  
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from bee_task_log
+    where bee_task_log_id = #{beeTaskLogId,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from bee_task_log
+    where bee_task_log_id = #{beeTaskLogId,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.ruiyun.module.bee.entity.BeeTaskLogAndTeamEntity" >
+    insert into bee_task_log (bee_task_log_id, bee_task_id, bee_team_id, 
+      task_name, task_personnel_count, start_date, 
+      end_date, longitude, latitude, 
+      address, task_date, am_sign_in_time, 
+      am_sign_out_time, pm_sign_in_time, pm_sign_out_time, 
+      sign_float_minute, sign_radius, bee_personnel_id, 
+      create_time, merchant_id, audit_bee_personnel_id, 
+      audit_time, audit_status, audit_reason
+      )
+    values (#{beeTaskLogId,jdbcType=INTEGER}, #{beeTaskId,jdbcType=INTEGER}, #{beeTeamId,jdbcType=INTEGER}, 
+      #{taskName,jdbcType=VARCHAR}, #{taskPersonnelCount,jdbcType=INTEGER}, #{startDate,jdbcType=DATE}, 
+      #{endDate,jdbcType=DATE}, #{longitude,jdbcType=DECIMAL}, #{latitude,jdbcType=DECIMAL}, 
+      #{address,jdbcType=VARCHAR}, #{taskDate,jdbcType=VARCHAR}, #{amSignInTime,jdbcType=TIME}, 
+      #{amSignOutTime,jdbcType=TIME}, #{pmSignInTime,jdbcType=TIME}, #{pmSignOutTime,jdbcType=TIME}, 
+      #{signFloatMinute,jdbcType=INTEGER}, #{signRadius,jdbcType=INTEGER}, #{beePersonnelId,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{merchantId,jdbcType=INTEGER}, #{auditBeePersonnelId,jdbcType=INTEGER}, 
+      #{auditTime,jdbcType=TIMESTAMP}, #{auditStatus,jdbcType=INTEGER}, #{auditReason,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.ruiyun.module.bee.entity.BeeTaskLogAndTeamEntity" >
+    insert into bee_task_log
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="beeTaskLogId != null" >
+        bee_task_log_id,
+      </if>
+      <if test="beeTaskId != null" >
+        bee_task_id,
+      </if>
+      <if test="beeTeamId != null" >
+        bee_team_id,
+      </if>
+      <if test="taskName != null" >
+        task_name,
+      </if>
+      <if test="taskPersonnelCount != null" >
+        task_personnel_count,
+      </if>
+      <if test="startDate != null" >
+        start_date,
+      </if>
+      <if test="endDate != null" >
+        end_date,
+      </if>
+      <if test="longitude != null" >
+        longitude,
+      </if>
+      <if test="latitude != null" >
+        latitude,
+      </if>
+      <if test="address != null" >
+        address,
+      </if>
+      <if test="taskDate != null" >
+        task_date,
+      </if>
+      <if test="amSignInTime != null" >
+        am_sign_in_time,
+      </if>
+      <if test="amSignOutTime != null" >
+        am_sign_out_time,
+      </if>
+      <if test="pmSignInTime != null" >
+        pm_sign_in_time,
+      </if>
+      <if test="pmSignOutTime != null" >
+        pm_sign_out_time,
+      </if>
+      <if test="signFloatMinute != null" >
+        sign_float_minute,
+      </if>
+      <if test="signRadius != null" >
+        sign_radius,
+      </if>
+      <if test="beePersonnelId != null" >
+        bee_personnel_id,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="merchantId != null" >
+        merchant_id,
+      </if>
+      <if test="auditBeePersonnelId != null" >
+        audit_bee_personnel_id,
+      </if>
+      <if test="auditTime != null" >
+        audit_time,
+      </if>
+      <if test="auditStatus != null" >
+        audit_status,
+      </if>
+      <if test="auditReason != null" >
+        audit_reason,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="beeTaskLogId != null" >
+        #{beeTaskLogId,jdbcType=INTEGER},
+      </if>
+      <if test="beeTaskId != null" >
+        #{beeTaskId,jdbcType=INTEGER},
+      </if>
+      <if test="beeTeamId != null" >
+        #{beeTeamId,jdbcType=INTEGER},
+      </if>
+      <if test="taskName != null" >
+        #{taskName,jdbcType=VARCHAR},
+      </if>
+      <if test="taskPersonnelCount != null" >
+        #{taskPersonnelCount,jdbcType=INTEGER},
+      </if>
+      <if test="startDate != null" >
+        #{startDate,jdbcType=DATE},
+      </if>
+      <if test="endDate != null" >
+        #{endDate,jdbcType=DATE},
+      </if>
+      <if test="longitude != null" >
+        #{longitude,jdbcType=DECIMAL},
+      </if>
+      <if test="latitude != null" >
+        #{latitude,jdbcType=DECIMAL},
+      </if>
+      <if test="address != null" >
+        #{address,jdbcType=VARCHAR},
+      </if>
+      <if test="taskDate != null" >
+        #{taskDate,jdbcType=VARCHAR},
+      </if>
+      <if test="amSignInTime != null" >
+        #{amSignInTime,jdbcType=TIME},
+      </if>
+      <if test="amSignOutTime != null" >
+        #{amSignOutTime,jdbcType=TIME},
+      </if>
+      <if test="pmSignInTime != null" >
+        #{pmSignInTime,jdbcType=TIME},
+      </if>
+      <if test="pmSignOutTime != null" >
+        #{pmSignOutTime,jdbcType=TIME},
+      </if>
+      <if test="signFloatMinute != null" >
+        #{signFloatMinute,jdbcType=INTEGER},
+      </if>
+      <if test="signRadius != null" >
+        #{signRadius,jdbcType=INTEGER},
+      </if>
+      <if test="beePersonnelId != null" >
+        #{beePersonnelId,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="merchantId != null" >
+        #{merchantId,jdbcType=INTEGER},
+      </if>
+      <if test="auditBeePersonnelId != null" >
+        #{auditBeePersonnelId,jdbcType=INTEGER},
+      </if>
+      <if test="auditTime != null" >
+        #{auditTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="auditStatus != null" >
+        #{auditStatus,jdbcType=INTEGER},
+      </if>
+      <if test="auditReason != null" >
+        #{auditReason,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.ruiyun.module.bee.entity.BeeTaskLogAndTeamEntity" >
+    update bee_task_log
+    <set >
+      <if test="beeTaskId != null" >
+        bee_task_id = #{beeTaskId,jdbcType=INTEGER},
+      </if>
+      <if test="beeTeamId != null" >
+        bee_team_id = #{beeTeamId,jdbcType=INTEGER},
+      </if>
+      <if test="taskName != null" >
+        task_name = #{taskName,jdbcType=VARCHAR},
+      </if>
+      <if test="taskPersonnelCount != null" >
+        task_personnel_count = #{taskPersonnelCount,jdbcType=INTEGER},
+      </if>
+      <if test="startDate != null" >
+        start_date = #{startDate,jdbcType=DATE},
+      </if>
+      <if test="endDate != null" >
+        end_date = #{endDate,jdbcType=DATE},
+      </if>
+      <if test="longitude != null" >
+        longitude = #{longitude,jdbcType=DECIMAL},
+      </if>
+      <if test="latitude != null" >
+        latitude = #{latitude,jdbcType=DECIMAL},
+      </if>
+      <if test="address != null" >
+        address = #{address,jdbcType=VARCHAR},
+      </if>
+      <if test="taskDate != null" >
+        task_date = #{taskDate,jdbcType=VARCHAR},
+      </if>
+      <if test="amSignInTime != null" >
+        am_sign_in_time = #{amSignInTime,jdbcType=TIME},
+      </if>
+      <if test="amSignOutTime != null" >
+        am_sign_out_time = #{amSignOutTime,jdbcType=TIME},
+      </if>
+      <if test="pmSignInTime != null" >
+        pm_sign_in_time = #{pmSignInTime,jdbcType=TIME},
+      </if>
+      <if test="pmSignOutTime != null" >
+        pm_sign_out_time = #{pmSignOutTime,jdbcType=TIME},
+      </if>
+      <if test="signFloatMinute != null" >
+        sign_float_minute = #{signFloatMinute,jdbcType=INTEGER},
+      </if>
+      <if test="signRadius != null" >
+        sign_radius = #{signRadius,jdbcType=INTEGER},
+      </if>
+      <if test="beePersonnelId != null" >
+        bee_personnel_id = #{beePersonnelId,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="merchantId != null" >
+        merchant_id = #{merchantId,jdbcType=INTEGER},
+      </if>
+      <if test="auditBeePersonnelId != null" >
+        audit_bee_personnel_id = #{auditBeePersonnelId,jdbcType=INTEGER},
+      </if>
+      <if test="auditTime != null" >
+        audit_time = #{auditTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="auditStatus != null" >
+        audit_status = #{auditStatus,jdbcType=INTEGER},
+      </if>
+      <if test="auditReason != null" >
+        audit_reason = #{auditReason,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where bee_task_log_id = #{beeTaskLogId,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.ruiyun.module.bee.entity.BeeTaskLogAndTeamEntity" >
+    update bee_task_log
+    set bee_task_id = #{beeTaskId,jdbcType=INTEGER},
+      bee_team_id = #{beeTeamId,jdbcType=INTEGER},
+      task_name = #{taskName,jdbcType=VARCHAR},
+      task_personnel_count = #{taskPersonnelCount,jdbcType=INTEGER},
+      start_date = #{startDate,jdbcType=DATE},
+      end_date = #{endDate,jdbcType=DATE},
+      longitude = #{longitude,jdbcType=DECIMAL},
+      latitude = #{latitude,jdbcType=DECIMAL},
+      address = #{address,jdbcType=VARCHAR},
+      task_date = #{taskDate,jdbcType=VARCHAR},
+      am_sign_in_time = #{amSignInTime,jdbcType=TIME},
+      am_sign_out_time = #{amSignOutTime,jdbcType=TIME},
+      pm_sign_in_time = #{pmSignInTime,jdbcType=TIME},
+      pm_sign_out_time = #{pmSignOutTime,jdbcType=TIME},
+      sign_float_minute = #{signFloatMinute,jdbcType=INTEGER},
+      sign_radius = #{signRadius,jdbcType=INTEGER},
+      bee_personnel_id = #{beePersonnelId,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      merchant_id = #{merchantId,jdbcType=INTEGER},
+      audit_bee_personnel_id = #{auditBeePersonnelId,jdbcType=INTEGER},
+      audit_time = #{auditTime,jdbcType=TIMESTAMP},
+      audit_status = #{auditStatus,jdbcType=INTEGER},
+      audit_reason = #{auditReason,jdbcType=VARCHAR}
+    where bee_task_log_id = #{beeTaskLogId,jdbcType=INTEGER}
+  </update>
+</mapper>

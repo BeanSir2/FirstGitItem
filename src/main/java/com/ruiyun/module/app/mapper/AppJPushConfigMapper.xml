@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ruiyun.module.app.proxy.AppJPushConfigProxy" >
+  <resultMap id="BaseResultMap" type="com.ruiyun.module.app.entity.AppJPushConfig" >
+    <id column="jpush_config_id" property="jpushConfigId" jdbcType="INTEGER" />
+    <result column="app_name" property="appName" jdbcType="VARCHAR" />
+    <result column="app_key" property="appKey" jdbcType="VARCHAR" />
+    <result column="master_secret" property="masterSecret" jdbcType="VARCHAR" />
+    <result column="time" property="time" jdbcType="INTEGER" />
+    <result column="sound" property="sound" jdbcType="VARCHAR" />
+    <result column="content_available" property="contentAvailable" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    jpush_config_id, app_name, app_key, master_secret, time, sound, content_available
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from app_jpush_config
+    where jpush_config_id = #{jpushConfigId,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from app_jpush_config
+    where jpush_config_id = #{jpushConfigId,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.ruiyun.module.app.entity.AppJPushConfig" >
+    insert into app_jpush_config (jpush_config_id, app_name, app_key, 
+      master_secret, time, sound, 
+      content_available)
+    values (#{jpushConfigId,jdbcType=INTEGER}, #{appName,jdbcType=VARCHAR}, #{appKey,jdbcType=VARCHAR}, 
+      #{masterSecret,jdbcType=VARCHAR}, #{time}, #{sound,jdbcType=VARCHAR}, 
+      #{contentAvailable,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" parameterType="com.ruiyun.module.app.entity.AppJPushConfig" >
+    insert into app_jpush_config
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="config.jpushConfigId != null" >
+        jpush_config_id,
+      </if>
+      <if test="config.appName != null" >
+        app_name,
+      </if>
+      <if test="config.appKey != null" >
+        app_key,
+      </if>
+      <if test="config.masterSecret != null" >
+        master_secret,
+      </if>
+      <if test="config.time != null" >
+        time,
+      </if>
+      <if test="config.sound != null" >
+        sound,
+      </if>
+      <if test="config.contentAvailable != null" >
+        content_available,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="config.jpushConfigId != null" >
+        #{config.jpushConfigId,jdbcType=INTEGER},
+      </if>
+      <if test="config.appName != null" >
+        #{config.appName,jdbcType=VARCHAR},
+      </if>
+      <if test="config.appKey != null" >
+        #{config.appKey,jdbcType=VARCHAR},
+      </if>
+      <if test="config.masterSecret != null" >
+        #{config.masterSecret,jdbcType=VARCHAR},
+      </if>
+      <if test="config.time != null" >
+        #{config.time},
+      </if>
+      <if test="config.sound != null" >
+        #{config.sound,jdbcType=VARCHAR},
+      </if>
+      <if test="config.contentAvailable != null" >
+        #{config.contentAvailable,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.ruiyun.module.app.entity.AppJPushConfig" >
+    update app_jpush_config
+    <set >
+      <if test="config.appName != null" >
+        app_name = #{config.appName,jdbcType=VARCHAR},
+      </if>
+      <if test="config.appKey != null" >
+        app_key = #{config.appKey,jdbcType=VARCHAR},
+      </if>
+      <if test="config.masterSecret != null" >
+        master_secret = #{config.masterSecret,jdbcType=VARCHAR},
+      </if>
+      <if test="config.time != null" >
+        time = #{config.time},
+      </if>
+      <if test="config.sound != null" >
+        sound = #{config.sound,jdbcType=VARCHAR},
+      </if>
+      <if test="config.contentAvailable != null" >
+        content_available = #{config.contentAvailable,jdbcType=INTEGER},
+      </if>
+    </set>
+    where jpush_config_id = #{config.jpushConfigId,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.ruiyun.module.app.entity.AppJPushConfig" >
+    update app_jpush_config
+    set app_name = #{appName,jdbcType=VARCHAR},
+      app_key = #{appKey,jdbcType=VARCHAR},
+      master_secret = #{masterSecret,jdbcType=VARCHAR},
+      time = #{time},
+      sound = #{sound,jdbcType=VARCHAR},
+      content_available = #{contentAvailable,jdbcType=INTEGER}
+    where jpush_config_id = #{jpushConfigId,jdbcType=INTEGER}
+  </update>
+  
+  <select id="getJPushConfigCount" resultType="java.lang.Long" >
+  	select count(*)
+    from app_jpush_config
+    where 1=1
+		<if test="appName != null and appName != ''">
+			And app_name like concat('%', #{appName}, '%')
+		</if>
+  </select>
+  <select id="getJPushConfigList" resultMap="BaseResultMap" >
+  	select <include refid="Base_Column_List" />
+    from app_jpush_config
+    where 1=1
+		<if test="appName != null and appName != ''">
+			And app_name like concat('%', #{appName}, '%')
+		</if>
+	<if test="page != null and page != ''">
+		LIMIT #{page.startRow}, #{page.endRow}
+	</if>
+  </select>
+  <select id="selectByAppName" resultType="java.lang.Long">
+  	select count(*)
+    from app_jpush_config
+    where app_name = #{appName}
+  </select>
+</mapper>

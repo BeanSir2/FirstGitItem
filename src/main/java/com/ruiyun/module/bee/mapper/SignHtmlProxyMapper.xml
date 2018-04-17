@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ruiyun.module.bee.proxy.SignHtmlProxy" >
+  <resultMap id="BaseResultMap" type="com.ruiyun.module.bee.entity.SignEntity" >
+    <result column="custom_name" property="customName" jdbcType="VARCHAR" />
+    <result column="custom_tel" property="customTel" jdbcType="VARCHAR" />
+    <result column="project_info_name" property="projectInfoName" jdbcType="VARCHAR" />
+    <result column="record_time" property="recordTime" jdbcType="TIMESTAMP" />
+    <result column="personnel_name" property="personnelName" jdbcType="VARCHAR" />
+    <result column="record_distance" property="recordDistance" jdbcType="INTEGER" />
+    <result column="report_location" property="reportLocation" jdbcType="VARCHAR" />
+    <result column="subscription" property="subscription" jdbcType="VARCHAR" />
+    <result column="apartment" property="apartment" jdbcType="VARCHAR" />
+    <result column="online_sign_amount" property="onlineSignAmount" jdbcType="DECIMAL" />
+    <result column="online_sign_time" property="onlineSignTime" jdbcType="TIMESTAMP" />
+    <result column="broker_name" property="brokerName" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    custom_name,custom_tel,project_info_name,record_time,personnel_name,
+    record_distance,report_location
+  </sql>
+  
+  <!-- 签约导出列表 -->
+  <select id="signData" resultType="map">
+  		SELECT
+  			DISTINCT a.order_custom_record_id,
+			a.a.broker_name,
+			a.custom_name,
+			a.custom_tel,
+			a.project_info_name,
+			a.record_time,
+			a.report_location,
+			a.record_distance,
+			CONCAT(d.house_building,'栋',d.house_unit,'单元') subscription,
+			d.online_sign_amount,
+			d.online_sign_time,
+			CONCAT(e.room_total,'室',e.living_room_total,'厅',e.bathroom_total,'卫') apartment
+		FROM
+			order_custom_record a
+		LEFT JOIN
+			bee_task_personnel b
+		ON
+			a.bee_task_id = b.bee_task_id
+		LEFT JOIN 
+			order_info d
+		ON 
+			a.order_custom_record_id = d.order_custom_record_id
+		LEFT JOIN
+			building_house e
+		ON
+			d.house_id=e.house_id
+		
+		WHERE 
+			a.bee_task_id = #{beeTaskId} and a.broker_id = #{beePersonnelId} 
+			AND d.order_status = 5 AND a.record_channel=3 AND d.channel_type=3
+  </select>
+  
+  
+  <!-- 签约详情列表 -->
+  <select id="signHtmlList" resultMap="BaseResultMap">
+  		SELECT
+			DISTINCT a.order_custom_record_id,
+			a.broker_name,
+			a.custom_name,
+			a.custom_tel,
+			a.project_info_name,
+			a.record_time,
+			a.report_location,
+			a.record_distance,
+			CONCAT(d.house_building,'栋',d.house_unit,'单元') subscription,
+			d.online_sign_amount,
+			d.online_sign_time,
+			CONCAT(e.room_total,'室',e.living_room_total,'厅',e.bathroom_total,'卫') apartment
+		FROM
+			order_custom_record a
+		LEFT JOIN
+			bee_task_personnel b
+		ON
+			a.bee_task_id = b.bee_task_id
+		LEFT JOIN 
+			order_info d
+		ON 
+			a.order_custom_record_id = d.order_custom_record_id
+		LEFT JOIN
+			building_house e
+		ON
+			d.house_id=e.house_id
+		
+		WHERE 
+			a.bee_task_id = #{beeTaskId} and a.broker_id = #{beePersonnelId} 
+			AND d.order_status = 5 AND a.record_channel=3 AND d.channel_type=3
+		<if test="pageParams != null and pageParams != ''">
+			ORDER BY
+			#{pageParams.sort} #{pageParams.order}
+			LIMIT
+			#{pageParams.startRow}, #{pageParams.endRow}
+		</if>
+  </select>
+  
+	
+	<!-- 拓客详情列表总条数 -->
+	<select id="getsignHtmlCount" resultType="java.lang.Long">
+	
+		select count(1) from (SELECT
+			count(1)
+		FROM
+			order_custom_record a
+		LEFT JOIN
+			bee_task_personnel b
+		ON
+			a.bee_task_id = b.bee_task_id
+		LEFT JOIN 
+			order_info d
+		ON 
+			a.order_custom_record_id = d.order_custom_record_id
+		LEFT JOIN
+			building_house e
+		ON
+			d.house_id=e.house_id
+		WHERE 
+			a.bee_task_id =#{beeTaskId} and a.broker_id = #{beePersonnelId} 
+			AND d.order_status = 5 AND a.record_channel=3 AND d.channel_type=3
+			GROUP BY a.order_custom_record_id) tt
+	</select>
+  
+</mapper>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ruiyun.module.bee.proxy.BeeSignProxy">
+  <resultMap id="BaseResultMap" type="com.ruiyun.module.bee.entity.BeeSignEntity">
+    <id column="bee_sign_id" property="beeSignId" jdbcType="INTEGER" />
+    <result column="bee_task_id" property="beeTaskId" jdbcType="INTEGER" />
+    <result column="bee_personnel_id" property="beePersonnelId" jdbcType="INTEGER" />
+    <result column="sign_time" property="signTime" jdbcType="TIMESTAMP" />
+    <result column="longitude" property="longitude" jdbcType="DECIMAL" />
+    <result column="latitude"  property="latitude" jdbcType="DECIMAL" />
+    <result column="address" property="address" jdbcType="VARCHAR" />
+  </resultMap>
+ <!--根据各类查询条件查询签到数  -->
+  <select id="getAllCount" resultType="java.lang.Double" parameterType="com.ruiyun.module.bee.entity.BeeCommonEntity">
+	SELECT
+		IFNULL(SUM(b.valid_day),'0')
+	FROM
+		(
+			SELECT DISTINCT
+				bs.*
+			FROM
+				bee_attend bs
+			LEFT JOIN bee_personnel bp ON bs.bee_personnel_id = bp.bee_personnel_id
+			LEFT JOIN bee_task_personnel bt ON bs.bee_task_id = bt.bee_task_id
+			LEFT JOIN system_operator_company soc ON bp.company_id = soc.company_id
+			WHERE
+				bs.attend_status = 1
+			AND bp.status = 1
+			AND bp.personnel_permission LIKE '小蜜蜂'
+			AND soc.operator_id = #{operatorId}
+			
+			<if test="entity.startDate != null and entity.startDate != ''">
+				AND	bs.attend_date <![CDATA[ >= ]]> #{entity.startDate}
+			</if>
+			<if test="entity.endDate != null and entity.endDate != ''">
+				AND	bs.attend_date <![CDATA[ <= ]]> #{entity.endDate}
+			</if>
+			<if test="entity.beeTaskId != null and entity.beeTaskId != ''">
+				AND	bs.bee_task_id= #{entity.beeTaskId}
+			</if>
+			<if test="entity.beeTeamId != null and entity.beeTeamId != ''">
+				AND bp.bee_team_id = #{entity.beeTeamId}
+			</if>
+			<if test="entity.beePersonnelId != null and entity.beePersonnelId != ''">
+				AND	bs.bee_personnel_id= #{entity.beePersonnelId}
+			</if>
+		) b
+ </select>
+ 
+  <select id="getSignData" resultType="map" parameterType="com.ruiyun.module.bee.entity.BeeCommonEntity">
+	SELECT DISTINCT
+		bs.*
+	FROM
+		bee_attend bs
+	LEFT JOIN bee_personnel bp ON bs.bee_personnel_id = bp.bee_personnel_id
+	LEFT JOIN bee_task_personnel bt ON bs.bee_task_id = bt.bee_task_id
+	LEFT JOIN system_operator_company soc ON bp.company_id = soc.company_id
+	<where>
+			bs.attend_status = 1
+		AND bp.status = 1
+		AND bp.personnel_permission LIKE '小蜜蜂'
+		AND soc.operator_id = #{operatorId}
+		
+		<if test="entity.startDate != null and entity.startDate != ''">
+			AND	bs.attend_date <![CDATA[ >= ]]> #{entity.startDate}
+		</if>
+		<if test="entity.endDate != null and entity.endDate != ''">
+			AND	bs.attend_date <![CDATA[ <= ]]> #{entity.endDate}
+		</if>
+		<if test="entity.beeTaskId != null and entity.beeTaskId != ''">
+			AND	bs.bee_task_id= #{entity.beeTaskId}
+		</if>
+		<if test="entity.beeTeamId != null and entity.beeTeamId != ''">
+			AND bp.bee_team_id = #{entity.beeTeamId}
+		</if>
+		<if test="entity.beePersonnelId != null and entity.beePersonnelId != ''">
+			AND	bs.bee_personnel_id= #{entity.beePersonnelId}
+		</if>
+	</where>
+ </select>
+</mapper>

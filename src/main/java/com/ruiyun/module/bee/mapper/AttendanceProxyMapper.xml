@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ruiyun.module.bee.proxy.AttendanceProxy" >
+  <resultMap id="BaseResultMap" type="java.util.HashMap" >
+    <result column="attend_date" property="attendDate" jdbcType="VARCHAR" />
+    <result column="attend_day" property="attendDay" jdbcType="DECIMAL" />
+    <result column="valid_day" property="validDay" jdbcType="DECIMAL" />
+    <result column="personnel_name" property="personnelName" jdbcType="VARCHAR" />
+    <result column="task_date" property="taskDate" jdbcType="VARCHAR" />
+    <result column="bee_personnel_id" property="beePersonnelId" jdbcType="INTEGER" />
+    <result column="start_date" property="startDate" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    attend_date,attend_day,valid_day,personnel_name,task_date,bee_personnel_id,start_date
+  </sql>
+  <select id="extenDetailExport" resultType="map">
+	  	   SELECT
+				bp.personnel_name personnelName,
+				btp.create_time createTime,
+				btp.bee_task_id beeTaskId,
+				bp.bee_personnel_id beePersonnelId
+			FROM
+				bee_personnel bp
+			LEFT JOIN bee_task_personnel btp ON btp.bee_personnel_id = bp.bee_personnel_id
+			WHERE
+				bp.bee_team_id = #{beeTeamId}
+			AND btp.bee_task_id = #{beeTaskId}
+  </select>
+  
+  <!-- 考勤列表 -->
+  <select id="getAtt" resultMap="BaseResultMap">
+  		SELECT
+			 ba.bee_personnel_id,
+			IFNULL(ba.attend_day,0) attend_day,
+			IFNULL(ba.valid_day,0) valid_day,
+			bp.personnel_name,
+			btl.task_date,
+			DATE_FORMAT(btp.create_time,'%Y-%m-%d %H:%i:%s') create_time
+		FROM
+			bee_attend ba
+		LEFT JOIN bee_personnel bp ON ba.bee_personnel_id = bp.bee_personnel_id
+		LEFT JOIN bee_task btl ON ba.bee_task_id = btl.bee_task_id
+		LEFT JOIN bee_task_personnel btp ON btp.bee_personnel_id = ba.bee_personnel_id
+		WHERE 
+			bp.bee_team_id= #{beeTeamId} and  ba.bee_task_id=#{beeTaskId}
+		<if test="personnelName != null and personnelName != ''">
+			and bp.personnel_name = #{personnelName}
+		</if>
+			 GROUP BY ba.bee_personnel_id 
+		<if test="pageParams != null and pageParams != ''">
+			ORDER BY
+			#{pageParams.sort} #{pageParams.order}
+			LIMIT
+			#{pageParams.startRow}, #{pageParams.endRow}
+		</if>
+  </select>
+  
+  <select id="getAttTaskDate" resultMap="BaseResultMap">
+  		SELECT
+			DISTINCT ba.bee_personnel_id,
+			ba.attend_day,
+			ba.valid_day,
+			bp.personnel_name,
+			btl.task_date,
+			btp.create_time
+		FROM
+			bee_attend ba
+		LEFT JOIN bee_personnel bp ON ba.bee_personnel_id = bp.bee_personnel_id
+		LEFT JOIN bee_task btl ON ba.bee_task_id = btl.bee_task_id
+		LEFT JOIN bee_task_personnel btp ON btp.bee_personnel_id = ba.bee_personnel_id
+		WHERE 
+			bp.bee_team_id= #{beeTeamId} and  ba.bee_task_id=#{beeTaskId}
+  </select>
+	
+	<!-- 考勤列表总条数 -->
+	<select id="getGridDataCount" resultType="java.lang.Long">
+		SELECT
+			COUNT(1)
+		FROM
+			(
+				SELECT
+					DISTINCT ba.bee_personnel_id,
+					count(1)
+				FROM
+					bee_attend ba
+				LEFT JOIN bee_personnel bp ON ba.bee_personnel_id = bp.bee_personnel_id
+				LEFT JOIN bee_task btl ON ba.bee_task_id = btl.bee_task_id
+				LEFT JOIN bee_task_personnel btp ON btp.bee_personnel_id = ba.bee_personnel_id
+				WHERE
+					bp.bee_team_id =#{beeTeamId}
+				AND ba.bee_task_id = #{beeTaskId}
+				GROUP BY ba.bee_attend_id
+				<if test="personnelName != null and personnelName != ''">
+					and bp.personnel_name = #{personnelName}
+				</if>
+			) tt
+			
+	</select>
+  
+  	<select id="teamId" resultType="java.util.Map">
+		SELECT
+			bp.personnel_name personnelName,
+			btp.create_time createTime,
+			btp.bee_task_id beeTaskId,
+			bp.bee_personnel_id beePersonnelId
+		FROM
+			bee_personnel bp
+		LEFT JOIN bee_task_personnel btp ON btp.bee_personnel_id = bp.bee_personnel_id
+		WHERE
+			bp.bee_team_id = #{beeTeamId}
+		AND btp.bee_task_id = #{beeTaskId}
+			<if test="epersonnelName != null and epersonnelName != ''">
+			and bp.personnel_name = #{epersonnelName}
+			</if>
+  	</select>
+  	
+  	<!-- 查询任务名称 -->
+  	<select id="taskName" resultType="java.util.Map">
+  		SELECT
+			task_name taskName,
+			task_date taskDate,
+			am_sign_in_time amSignInTime,
+			am_sign_out_time amSignOutTime,
+			pm_sign_in_time pmSignInTime,
+			pm_sign_out_time pmSignOutTime,
+			sign_float_minute signFloatMinute,
+			sign_radius signRadius,
+			address address
+		FROM
+			bee_task
+		WHERE
+			bee_team_id = #{beeTeamId} and bee_task_id=#{beeTaskId}
+  	</select>
+  	
+  	
+  	  <!-- 考勤列表 -->
+  <select id="downloadAttendanceDetailsExcel" resultType="map">
+  		SELECT
+			DISTINCT ba.bee_personnel_id,
+			IFNULL(ba.attend_day,0) attendDay,
+			IFNULL(ba.valid_day,0) validDay,
+			bp.personnel_name personnelName,
+			btl.task_date taskDate,
+			DATE_FORMAT(btp.create_time,'%Y-%m-%d %H:%i:%s')createTime
+		FROM
+			bee_attend ba
+		LEFT JOIN bee_personnel bp ON ba.bee_personnel_id = bp.bee_personnel_id
+		LEFT JOIN bee_task btl ON ba.bee_task_id = btl.bee_task_id
+		LEFT JOIN bee_task_personnel btp ON btp.bee_personnel_id = ba.bee_personnel_id
+		WHERE 
+			bp.bee_team_id= #{beeTeamId} and  ba.bee_task_id=#{beeTaskId}
+			GROUP BY ba.bee_attend_id
+		<if test="personnelName != null and personnelName != ''">
+			and bp.personnel_name = #{personnelName}
+		</if>
+  </select>
+</mapper>

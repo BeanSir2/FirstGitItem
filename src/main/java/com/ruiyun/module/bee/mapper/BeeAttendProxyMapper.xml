@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ruiyun.module.bee.proxy.BeeAttendProxy">
+
+ <!-- 拓客数 -->
+ <select id="getAllowanceCount" resultType="java.lang.Integer">
+	SELECT
+		count(DISTINCT ocr.custom_tel)
+	FROM
+		order_custom_record ocr
+	LEFT JOIN bee_task bt ON ocr.bee_task_id = bt.bee_task_id
+	LEFT JOIN bee_personnel bp ON bt.bee_team_id = bp.bee_team_id,
+	 system_operator so,
+ 	 system_operator_company soc , 
+ 	 system_operator_building_project sobp
+	<where>
+			so.operator_id = soc.operator_id
+		AND so.operator_id = #{operatorId}
+		AND bp.company_id = soc.company_id
+		AND ocr.building_project_id = sobp.building_project_id
+		AND ocr.record_channel = 3
+	<if test="entity.beePersonnelId != null and entity.beePersonnelId != ''">
+		AND bp.personnel_permission = '小蜜蜂'
+		AND bp.bee_personnel_id = #{entity.beePersonnelId}
+		AND ocr.broker_id = #{entity.beePersonnelId}
+	</if>
+	<if test="entity.startDate != null and entity.startDate != ''">
+		AND	DATE_FORMAT(bt.start_date,"%Y-%m-%d") <![CDATA[ >= ]]> #{entity.startDate}
+	</if>
+	<if test="entity.endDate != null and entity.endDate != ''">
+		AND	DATE_FORMAT(bt.end_date,"%Y-%m-%d") <![CDATA[ <= ]]> #{entity.endDate}
+	</if>
+	<if test="entity.beeTaskId != null and entity.beeTaskId != ''">
+		AND ocr.bee_task_id = #{entity.beeTaskId}
+	</if>
+	<if test="entity.beeTeamId != null and entity.beeTeamId != ''">
+		AND bt.bee_team_id = #{entity.beeTeamId}
+	</if>
+	<if test="entity.buildingProjectId != null and entity.buildingProjectId != ''">
+		AND ocr.building_project_id = #{entity.buildingProjectId}
+	</if>
+	<if test="entity.provinceId != null and entity.provinceId != ''">
+		AND ocr.province_id = #{entity.provinceId}
+	</if>
+	<if test="entity.cityId != null and entity.cityId != ''">
+		AND ocr.city_id = #{entity.cityId}
+	</if>
+	</where>
+	
+ </select>
+ 
+ <!-- 报备数 -->
+ <select id="getReportCount" resultType="java.lang.Integer">
+	SELECT
+		count(DISTINCT ocr.order_custom_record_id)
+	FROM
+		order_custom_record ocr
+	LEFT JOIN bee_task bt ON ocr.bee_task_id = bt.bee_task_id
+	LEFT JOIN bee_personnel bp ON bt.bee_team_id = bp.bee_team_id,
+	 system_operator so,
+ 	 system_operator_company soc ,
+ 	 system_operator_building_project sobp
+	<where>
+			so.operator_id = soc.operator_id
+		AND so.operator_id = #{operatorId}
+		AND bp.company_id = soc.company_id
+		AND ocr.building_project_id = sobp.building_project_id
+		AND ocr.record_channel = 3
+	 <if test="entity.beePersonnelId != null and entity.beePersonnelId != ''">
+		AND bp.personnel_permission = '小蜜蜂'
+		AND bp.bee_personnel_id = #{entity.beePersonnelId}
+		AND ocr.broker_id = #{entity.beePersonnelId}
+	 </if>
+	 <if test="entity.startDate != null and entity.startDate != ''">
+		AND	DATE_FORMAT(bt.start_date,"%Y-%m-%d") <![CDATA[ >= ]]> #{entity.startDate}
+	</if>
+	<if test="entity.endDate != null and entity.endDate != ''">
+		AND	DATE_FORMAT(bt.end_date,"%Y-%m-%d") <![CDATA[ <= ]]> #{entity.endDate}
+	</if>
+	<if test="entity.beeTaskId != null and entity.beeTaskId != ''">
+		AND ocr.bee_task_id = #{entity.beeTaskId}
+	</if>
+	<if test="entity.beeTeamId != null and entity.beeTeamId != ''">
+		AND bt.bee_team_id = #{entity.beeTeamId}
+	</if>
+	<if test="entity.buildingProjectId != null and entity.buildingProjectId != ''">
+		AND ocr.building_project_id = #{entity.buildingProjectId}
+	</if>
+	<if test="entity.provinceId != null and entity.provinceId != ''">
+		AND ocr.province_id = #{entity.provinceId}
+	</if>
+	<if test="entity.cityId != null and entity.cityId != ''">
+		AND ocr.city_id = #{entity.cityId}
+	</if>
+	</where>
+ </select>
+ 
+ <!--到访数  -->
+  <select id="getVisitCount" resultType="java.lang.Integer">
+	SELECT
+		count(DISTINCT ocr.order_custom_record_id)
+	FROM
+		order_custom_record ocr
+	LEFT JOIN bee_task bt ON ocr.bee_task_id = bt.bee_task_id
+	LEFT JOIN bee_personnel bp ON bt.bee_team_id = bp.bee_team_id,
+	 system_operator so,
+ 	 system_operator_company soc , 
+ 	 system_operator_building_project sobp
+	<where>
+			so.operator_id = soc.operator_id
+		AND so.operator_id = #{operatorId}
+		AND bp.company_id = soc.company_id
+		AND ocr.building_project_id = sobp.building_project_id
+  		AND ocr.record_status in(6,7)
+  		AND ocr.record_channel = 3
+  	<if test="entity.beePersonnelId != null and entity.beePersonnelId != ''">
+  		AND	bp.personnel_permission = '小蜜蜂'
+		AND bp.bee_personnel_id = #{entity.beePersonnelId}
+		AND ocr.broker_id = #{entity.beePersonnelId}
+  	</if>
+  	 <if test="entity.startDate != null and entity.startDate != ''">
+		AND	DATE_FORMAT(bt.start_date,"%Y-%m-%d") <![CDATA[ >= ]]> #{entity.startDate}
+	 </if>
+	 <if test="entity.endDate != null and entity.endDate != ''">
+		AND	DATE_FORMAT(bt.end_date,"%Y-%m-%d") <![CDATA[ <= ]]> #{entity.endDate}
+	 </if>
+  	<if test="entity.beeTaskId != null and entity.beeTaskId != ''">
+		AND ocr.bee_task_id = #{entity.beeTaskId}
+	</if>
+	<if test="entity.beeTeamId != null and entity.beeTeamId != ''">
+		AND bt.bee_team_id = #{entity.beeTeamId}
+	</if>
+	<if test="entity.buildingProjectId != null and entity.buildingProjectId != ''">
+		AND ocr.building_project_id = #{entity.buildingProjectId}
+	</if>
+	<if test="entity.provinceId != null and entity.provinceId != ''">
+		AND ocr.province_id = #{entity.provinceId}
+	</if>
+	<if test="entity.cityId != null and entity.cityId != ''">
+		AND ocr.city_id = #{entity.cityId}
+	</if>
+	
+  </where>
+ </select>
+ 
+  <!--认购数  -->
+  <select id="getSubscripteCount" resultType="java.lang.Integer">
+	SELECT
+		count(DISTINCT oi.order_info_id)
+	FROM
+		order_info oi
+	LEFT JOIN order_custom_record ocr ON oi.order_custom_record_id = ocr.order_custom_record_id
+	LEFT JOIN bee_task bt ON ocr.bee_task_id = bt.bee_task_id
+	LEFT JOIN bee_personnel bp ON bt.bee_team_id = bp.bee_team_id,
+	 system_operator so,
+ 	 system_operator_company soc , 
+ 	 system_operator_building_project sobp
+	<where>
+			so.operator_id = soc.operator_id
+		AND so.operator_id = #{operatorId}
+		AND bp.company_id = soc.company_id
+		AND oi.building_project_id = sobp.building_project_id
+ 		AND oi.order_status IN (3, 4, 5)
+ 		AND oi.channel_type = 3
+ 		AND ocr.record_channel = 3
+  	<if test="entity.beePersonnelId != null and entity.beePersonnelId != ''">
+		AND bp.personnel_permission = '小蜜蜂'
+		AND bp.bee_personnel_id = #{entity.beePersonnelId}
+		AND ocr.broker_id = #{entity.beePersonnelId}
+  	</if>
+	 <if test="entity.startDate != null and entity.startDate != ''">
+		AND	DATE_FORMAT(bt.start_date,"%Y-%m-%d") <![CDATA[ >= ]]> #{entity.startDate}
+	 </if>
+	 <if test="entity.endDate != null and entity.endDate != ''">
+		AND	DATE_FORMAT(bt.end_date,"%Y-%m-%d") <![CDATA[ <= ]]> #{entity.endDate}
+	 </if>
+	 <if test="entity.beeTaskId != null and entity.beeTaskId != ''">
+		AND ocr.bee_task_id = #{entity.beeTaskId}
+	 </if>
+	 <if test="entity.beeTeamId != null and entity.beeTeamId != ''">
+		AND bt.bee_team_id = #{entity.beeTeamId}
+	 </if>
+	 <if test="entity.buildingProjectId != null and entity.buildingProjectId != ''">
+		AND oi.building_project_id = #{entity.buildingProjectId}
+	 </if>
+	 <if test="entity.provinceId != null and entity.provinceId != ''">
+		AND oi.province_id = #{entity.provinceId}
+	</if>
+	<if test="entity.cityId != null and entity.cityId != ''">
+		AND oi.city_id = #{entity.cityId}
+	</if>
+		
+  </where>
+ </select>
+ 
+ <!--成交数 -->
+  <select id="getTurnoverCount" resultType="java.lang.Integer">
+	SELECT
+		count(DISTINCT oi.order_info_id)
+	FROM
+		order_info oi
+	LEFT JOIN order_custom_record ocr ON oi.order_custom_record_id = ocr.order_custom_record_id
+	LEFT JOIN bee_task bt ON ocr.bee_task_id = bt.bee_task_id
+	LEFT JOIN bee_personnel bp ON bt.bee_team_id = bp.bee_team_id,
+	 system_operator so,
+ 	 system_operator_company soc , 
+ 	 system_operator_building_project sobp
+	<where>
+			so.operator_id = soc.operator_id
+		AND so.operator_id = #{operatorId}
+		AND bp.company_id = soc.company_id
+		AND oi.building_project_id = sobp.building_project_id
+  		AND oi.order_status = 5
+  		AND oi.channel_type = 3
+  		AND ocr.record_channel = 3
+  	<if test="entity.beePersonnelId != null and entity.beePersonnelId != ''">
+		AND bp.personnel_permission = '小蜜蜂'
+		AND bp.bee_personnel_id = #{entity.beePersonnelId}
+		AND ocr.broker_id = #{entity.beePersonnelId}
+  	</if>
+	 <if test="entity.startDate != null and entity.startDate != ''">
+		AND	DATE_FORMAT(bt.start_date,"%Y-%m-%d") <![CDATA[ >= ]]> #{entity.startDate}
+	 </if>
+	 <if test="entity.endDate != null and entity.endDate != ''">
+		AND	DATE_FORMAT(bt.end_date,"%Y-%m-%d") <![CDATA[ <= ]]> #{entity.endDate}
+	 </if>
+	 <if test="entity.beeTaskId != null and entity.beeTaskId != ''">
+		AND ocr.bee_task_id = #{entity.beeTaskId}
+	 </if>
+	 <if test="entity.beeTeamId != null and entity.beeTeamId != ''">
+		AND bt.bee_team_id = #{entity.beeTeamId}
+	 </if>
+	 <if test="entity.buildingProjectId != null and entity.buildingProjectId != ''">
+		AND oi.building_project_id = #{entity.buildingProjectId}
+	 </if>
+	 <if test="entity.provinceId != null and entity.provinceId != ''">
+		AND oi.province_id = #{entity.provinceId}
+	</if>
+	<if test="entity.cityId != null and entity.cityId != ''">
+		AND oi.city_id = #{entity.cityId}
+	</if>
+  </where>
+ </select>
+</mapper>

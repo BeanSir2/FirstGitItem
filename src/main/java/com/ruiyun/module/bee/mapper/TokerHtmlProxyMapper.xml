@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ruiyun.module.bee.proxy.TokerHtmlProxy" >
+  <resultMap id="BaseResultMap" type="com.ruiyun.module.bee.entity.TokerEntity" >
+    <result column="custom_name" property="customName" jdbcType="VARCHAR" />
+    <result column="custom_tel" property="customTel" jdbcType="VARCHAR" />
+    <result column="project_info_name" property="projectInfoName" jdbcType="VARCHAR" />
+    <result column="record_time" property="recordTime" jdbcType="TIMESTAMP" />
+    <result column="personnel_name" property="personnelName" jdbcType="VARCHAR" />
+    <result column="broker_name" property="brokerName" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    custom_name,custom_tel,project_info_name,record_time,personnel_name
+  </sql>
+  <select id="excelData" resultType="map">
+  		SELECT DISTINCT
+			a.custom_tel,
+			a.custom_name,
+			a.project_info_name,
+			(
+				SELECT
+					MIN(ocr.record_time)
+				FROM
+					order_custom_record ocr
+				WHERE
+					ocr.bee_task_id = a.bee_task_id
+				AND ocr.broker_id = a.broker_id
+			) record_time,
+			a.broker_name
+		FROM
+			order_custom_record a
+		LEFT JOIN bee_task_personnel b ON a.bee_task_id = b.bee_task_id
+		WHERE
+			a.bee_task_id = #{beeTaskId}
+		AND a.broker_id = #{beePersonnelId} 
+  </select>
+  
+  
+  <!-- 拓客详情列表 -->
+  <select id="tokerHtmlList" resultMap="BaseResultMap">
+  		SELECT DISTINCT
+			a.custom_tel,
+			a.custom_name,
+			a.project_info_name,
+			(
+				SELECT
+					MIN(ocr.record_time)
+				FROM
+					order_custom_record ocr
+				WHERE
+					ocr.bee_task_id = a.bee_task_id
+				AND ocr.broker_id = a.broker_id
+			) record_time,
+			a.broker_name
+		FROM
+			order_custom_record a
+		LEFT JOIN bee_task_personnel b ON a.bee_task_id = b.bee_task_id
+		WHERE
+			a.bee_task_id = #{beeTaskId}
+		AND a.broker_id = #{beePersonnelId} 
+		<if test="pageParams != null and pageParams != ''">
+			ORDER BY
+			#{pageParams.sort} #{pageParams.order}
+			LIMIT
+			#{pageParams.startRow}, #{pageParams.endRow}
+		</if>
+  </select>
+  
+	
+	<!-- 拓客详情列表总条数 -->
+	<select id="gettokerHtmlCount" resultType="java.lang.Long">
+		SELECT
+			COUNT(1)
+		FROM
+			(
+				SELECT DISTINCT
+			a.custom_tel,
+			a.custom_name,
+			a.project_info_name,
+			(
+				SELECT
+					MIN(ocr.record_time)
+				FROM
+					order_custom_record ocr
+				WHERE
+					ocr.bee_task_id = a.bee_task_id
+				AND ocr.broker_id = a.broker_id
+			) record_time,
+			a.broker_name
+		FROM
+			order_custom_record a
+		LEFT JOIN bee_task_personnel b ON a.bee_task_id = b.bee_task_id
+		WHERE
+			a.bee_task_id = #{beeTaskId}
+		AND a.broker_id = #{beePersonnelId} 
+			) tt
+	</select>
+  
+</mapper>

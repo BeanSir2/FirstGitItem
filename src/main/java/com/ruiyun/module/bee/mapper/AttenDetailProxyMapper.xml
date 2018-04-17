@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ruiyun.module.bee.proxy.AttenDetailProxy" >
+  <resultMap id="BaseResultMap" type="com.ruiyun.module.bee.entity.AttenDetailEntity" >
+    <result column="attend_date" property="attendDate" jdbcType="TIMESTAMP" />
+    <result column="valid_day" property="validDay" jdbcType="DECIMAL" />
+    <result column="personnel_name" property="personnelName" jdbcType="VARCHAR" />
+    
+    <result column="am_real_sign_in_time" property="amRealSignInTime" jdbcType="TIMESTAMP" />
+    <result column="am_real_sign_out_time" property="amRealSignOutTime" jdbcType="TIMESTAMP" />
+    <result column="am_sign_in_address" property="amSignInAddress" jdbcType="VARCHAR" />
+    <result column="am_sign_out_address" property="amSignOutAddress" jdbcType="VARCHAR" />
+    <result column="am_sign_in_status" property="amSignInStatus" jdbcType="INTEGER" />
+    <result column="am_sign_out_status" property="amSignOutStatus" jdbcType="INTEGER" />
+    
+    <result column="pm_real_sign_in_time" property="pmRealSignInTime" jdbcType="TIMESTAMP" />
+    <result column="pm_real_sign_out_time" property="pmRealSignOutTime" jdbcType="TIMESTAMP" />
+    <result column="pm_sign_in_address" property="pmSignInAddress" jdbcType="VARCHAR" />
+    <result column="pm_sign_out_address" property="pmSignOutAddress" jdbcType="VARCHAR" />
+    <result column="pm_sign_in_status" property="pmSignInStatus" jdbcType="INTEGER" />
+    <result column="pm_sign_out_status" property="pmSignOutStatus" jdbcType="INTEGER" />
+    
+    <result column="sign_float_minute" property="signFloatMinute" jdbcType="INTEGER" />
+    <result column="sign_radius" property="signRadius" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    attend_date,valid_day,personnel_name,am_real_sign_in_time,am_real_sign_out_time,am_sign_in_address,am_sign_out_address,
+    am_sign_in_status,am_sign_out_status,pm_real_sign_in_time,pm_real_sign_out_time,pm_sign_in_address,pm_sign_out_address,
+    pm_sign_in_status,pm_sign_out_status,sign_radius
+    
+  </sql>
+  
+  
+  <!-- 拓客详情列表 -->
+  <select id="attenList" resultMap="BaseResultMap">
+					(
+					SELECT
+						1 amOrPmStatus,
+						CONCAT(a.attend_date,'  早班上班打卡')attend_date,
+						IF(a.am_sign_in_address IS NULL, 0, 0.25) valid_day,
+						IFNULL(
+							CONCAT(a.attend_date,' ',a.am_real_sign_in_time),
+							'未打卡'
+						) signTime,
+						IFNULL(
+							a.am_sign_in_address,
+							'未打卡'
+						) address,
+						IF(a.am_sign_in_address IS NULL, 0, a.sign_float_minute) signFloatMinute,
+						b.personnel_name,
+						IF(a.am_sign_in_address IS NULL,0,c.sign_radius)sign_radius,
+						a.am_sign_in_status statu
+					FROM
+						bee_attend a
+					LEFT JOIN bee_personnel b ON a.bee_personnel_id = b.bee_personnel_id
+					LEFT JOIN bee_task c ON a.bee_task_id = c.bee_task_id
+					WHERE
+						a.bee_personnel_id = #{beePersonnelId}
+					AND a.attend_date = #{attendDate}
+					ORDER BY
+						statu DESC
+					LIMIT 1
+				)
+				UNION
+					(
+						SELECT
+							2 amOrPmStatus,
+							CONCAT(a.attend_date,'  早班下班打卡')attend_date,
+							IF(a.am_sign_out_address IS NULL,0,0.25) valid_day,
+							IFNULL(
+								CONCAT(a.attend_date,' ',a.am_real_sign_out_time),
+								'未打卡'
+							) signTime,
+							IFNULL(
+								a.am_sign_out_address,
+								'未打卡'
+							) address,
+							IF(a.am_sign_out_address IS NULL, 0, a.sign_float_minute) signFloatMinute,
+							b.personnel_name,
+							IF(a.am_sign_out_address IS NULL,0,c.sign_radius)sign_radius,
+							a.am_sign_out_status statu
+						FROM
+							bee_attend a
+						LEFT JOIN bee_personnel b ON a.bee_personnel_id = b.bee_personnel_id
+						LEFT JOIN bee_task c ON a.bee_task_id = c.bee_task_id
+						WHERE
+							a.bee_personnel_id = #{beePersonnelId}
+						AND a.attend_date = #{attendDate}
+						ORDER BY
+							statu DESC
+						LIMIT 1
+					)
+				UNION
+					(
+						SELECT
+							3 amOrPmStatus,
+							CONCAT(a.attend_date,'  晚班上班打卡')attend_date,
+							IF(a.pm_sign_in_address IS NULL,0,0.25) valid_day,
+							IFNULL(
+								CONCAT(a.attend_date,' ',a.pm_real_sign_in_time),
+								'未打卡'
+							) signTime,
+							IFNULL(
+								a.pm_sign_in_address,
+								'未打卡'
+							) address,
+							IF(a.pm_sign_in_address IS NULL, 0, a.sign_float_minute) signFloatMinute,
+							b.personnel_name,
+							IF(a.pm_sign_in_address IS NULL,0,c.sign_radius)sign_radius,
+							a.pm_sign_in_status statu
+						FROM
+							bee_attend a
+						LEFT JOIN bee_personnel b ON a.bee_personnel_id = b.bee_personnel_id
+						LEFT JOIN bee_task c ON a.bee_task_id = c.bee_task_id
+						WHERE
+							a.bee_personnel_id = #{beePersonnelId}
+						AND a.attend_date = #{attendDate}
+						ORDER BY
+							statu DESC
+						LIMIT 1
+					)
+				UNION
+					(
+						SELECT
+							4 amOrPmStatus,
+							CONCAT(a.attend_date,'  晚班下班打卡')attend_date,
+							IF(a.pm_sign_out_address IS NULL,0,0.25) valid_day,
+							IFNULL(
+								CONCAT(a.attend_date,' ',a.pm_real_sign_out_time),
+								'未打卡'
+							) signTime,
+							IFNULL(
+								a.pm_sign_out_address,
+								'未打卡'
+							) address,
+							IF(a.pm_sign_out_address IS NULL, 0, a.sign_float_minute) signFloatMinute,
+							b.personnel_name,
+							IF(a.pm_sign_out_address IS NULL,0,c.sign_radius)sign_radius,
+							a.pm_sign_out_status statu
+						FROM
+							bee_attend a
+						LEFT JOIN bee_personnel b ON a.bee_personnel_id = b.bee_personnel_id
+						LEFT JOIN bee_task c ON a.bee_task_id = c.bee_task_id
+						WHERE
+							a.bee_personnel_id = #{beePersonnelId}
+						AND a.attend_date = #{attendDate}
+						ORDER BY
+							statu DESC
+						LIMIT 1
+					)
+			<if test="pageParams != null and pageParams != ''">
+				ORDER BY
+				#{pageParams.sort} #{pageParams.order}
+				LIMIT
+				#{pageParams.startRow}, #{pageParams.endRow}
+			</if>
+  </select>
+  
+	
+	<!-- 拓客详情列表总条数 -->
+	<select id="getattenCount" resultType="java.lang.Long">
+		SELECT
+			COUNT(*)*4
+		FROM
+			bee_attend a
+		LEFT JOIN bee_personnel b ON a.bee_personnel_id = b.bee_personnel_id
+		LEFT JOIN bee_task c ON a.bee_task_id = c.bee_task_id
+		WHERE
+			a.bee_personnel_id = #{beePersonnelId}
+		AND a.attend_date = #{attendDate}
+	</select>
+  
+  <select id="findPersonnelName" resultType="java.util.Map">
+  		SELECT DISTINCT
+			b.personnel_name
+		FROM
+			bee_attend a
+		LEFT JOIN bee_personnel b ON a.bee_personnel_id = b.bee_personnel_id
+		LEFT JOIN bee_task c ON a.bee_task_id = c.bee_task_id
+		WHERE
+			a.bee_personnel_id = #{beePersonnelId}
+		AND a.attend_date = #{attendDate}
+  </select>
+  
+  <select id="attDetailData" resultType="map">
+  	(
+					SELECT
+						1 amOrPmStatus,
+						CONCAT(a.attend_date,'  早班上班打卡')attend_date,
+						IF(a.am_sign_in_address IS NULL, 0, 0.25) valid_day,
+						IFNULL(
+							CONCAT(a.attend_date,' ',a.am_real_sign_in_time),
+							'未打卡'
+						) signTime,
+						IFNULL(
+							a.am_sign_in_address,
+							'未打卡'
+						) address,
+						IF(a.am_sign_in_address IS NULL, 0, a.sign_float_minute) signFloatMinute,
+						b.personnel_name,
+						IF(a.am_sign_in_address IS NULL,0,c.sign_radius)sign_radius,
+						a.am_sign_in_status statu
+					FROM
+						bee_attend a
+					LEFT JOIN bee_personnel b ON a.bee_personnel_id = b.bee_personnel_id
+					LEFT JOIN bee_task c ON a.bee_task_id = c.bee_task_id
+					WHERE
+						a.bee_personnel_id = #{beePersonnelId}
+					AND a.attend_date = #{attendDate}
+					ORDER BY
+						statu DESC
+					LIMIT 1
+				)
+				UNION
+					(
+						SELECT
+							2 amOrPmStatus,
+							CONCAT(a.attend_date,'  早班下班打卡')attend_date,
+							IF(a.am_sign_out_address IS NULL,0,0.25) valid_day,
+							IFNULL(
+								CONCAT(a.attend_date,' ',a.am_real_sign_out_time),
+								'未打卡'
+							) signTime,
+							IFNULL(
+								a.am_sign_out_address,
+								'未打卡'
+							) address,
+							IF(a.am_sign_out_address IS NULL, 0, a.sign_float_minute) signFloatMinute,
+							b.personnel_name,
+							IF(a.am_sign_out_address IS NULL,0,c.sign_radius)sign_radius,
+							a.am_sign_out_status statu
+						FROM
+							bee_attend a
+						LEFT JOIN bee_personnel b ON a.bee_personnel_id = b.bee_personnel_id
+						LEFT JOIN bee_task c ON a.bee_task_id = c.bee_task_id
+						WHERE
+							a.bee_personnel_id = #{beePersonnelId}
+						AND a.attend_date = #{attendDate}
+						ORDER BY
+							statu DESC
+						LIMIT 1
+					)
+				UNION
+					(
+						SELECT
+							3 amOrPmStatus,
+							CONCAT(a.attend_date,'  晚班上班打卡')attend_date,
+							IF(a.pm_sign_in_address IS NULL,0,0.25) valid_day,
+							IFNULL(
+								CONCAT(a.attend_date,' ',a.pm_real_sign_in_time),
+								'未打卡'
+							) signTime,
+							IFNULL(
+								a.pm_sign_in_address,
+								'未打卡'
+							) address,
+							IF(a.pm_sign_in_address IS NULL, 0, a.sign_float_minute) signFloatMinute,
+							b.personnel_name,
+							IF(a.pm_sign_in_address IS NULL,0,c.sign_radius)sign_radius,
+							a.pm_sign_in_status statu
+						FROM
+							bee_attend a
+						LEFT JOIN bee_personnel b ON a.bee_personnel_id = b.bee_personnel_id
+						LEFT JOIN bee_task c ON a.bee_task_id = c.bee_task_id
+						WHERE
+							a.bee_personnel_id = #{beePersonnelId}
+						AND a.attend_date = #{attendDate}
+						ORDER BY
+							statu DESC
+						LIMIT 1
+					)
+				UNION
+					(
+						SELECT
+							4 amOrPmStatus,
+							CONCAT(a.attend_date,'  晚班下班打卡')attend_date,
+							IF(a.pm_sign_out_address IS NULL,0,0.25) valid_day,
+							IFNULL(
+								CONCAT(a.attend_date,' ',a.pm_real_sign_out_time),
+								'未打卡'
+							) signTime,
+							IFNULL(
+								a.pm_sign_out_address,
+								'未打卡'
+							) address,
+							IF(a.pm_sign_out_address IS NULL, 0, a.sign_float_minute) signFloatMinute,
+							b.personnel_name,
+							IF(a.pm_sign_out_address IS NULL,0,c.sign_radius)sign_radius,
+							a.pm_sign_out_status statu
+						FROM
+							bee_attend a
+						LEFT JOIN bee_personnel b ON a.bee_personnel_id = b.bee_personnel_id
+						LEFT JOIN bee_task c ON a.bee_task_id = c.bee_task_id
+						WHERE
+							a.bee_personnel_id = #{beePersonnelId}
+						AND a.attend_date = #{attendDate}
+						ORDER BY
+							statu DESC
+						LIMIT 1
+					)
+  
+  </select>
+  
+  
+  
+  
+</mapper>
